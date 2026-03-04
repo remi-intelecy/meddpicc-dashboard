@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEDDPICC Scorecards — Intelecy CS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0E14;
+    --surface: rgba(255,255,255,0.025);
+    --border: rgba(255,255,255,0.06);
+    --text-primary: #E8ECF4;
+    --text-secondary: rgba(255,255,255,0.55);
+    --text-muted: rgba(255,255,255,0.3);
+    --accent: #5B9CF6;
+    --green: #3DDC97;
+    --yellow: #F5C542;
+    --red: #F06060;
+    --font-body: 'Instrument Sans', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  .shell { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 40px 32px; }
+
+  /* ─── Header ─── */
+  .header { margin-bottom: 36px; }
+  .header-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+  .header-tag::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
+  }
+  .header h1 {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #F0F4FF 0%, #8BAAF0 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header p { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+  /* ─── Summary pills ─── */
+  .summary-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
+  .pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    animation: fadeUp 0.5s ease both;
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .pill .val { font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
+  .pill .lbl { font-size: 12px; color: var(--text-secondary); }
+  .pill-spacer { flex: 1; }
+
+  /* ─── Main grid ─── */
+  .main { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
+  @media (max-width: 860px) { .main { grid-template-columns: 1fr; } }
+
+  /* ─── Sidebar ─── */
+  .sidebar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 10px 8px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .sidebar-title {
+    padding: 10px 14px 12px; font-size: 10px; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .cust-btn {
+    all: unset; cursor: pointer; display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 11px 14px; border-radius: 12px;
+    border: 1px solid transparent; transition: all 0.2s ease;
+  }
+  .cust-btn:hover { background: rgba(255,255,255,0.04); }
+  .cust-btn.active { background: rgba(255,255,255,0.06); border-color: var(--border); }
+  .cust-avatar {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+    flex-shrink: 0; border: 1.5px solid transparent;
+  }
+  .cust-info { text-align: left; }
+  .cust-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .cust-band {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 1px 8px; border-radius: 5px; margin-top: 3px;
+  }
+
+  /* ─── Detail panel ─── */
+  .detail {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 32px;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+  .detail-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .detail-name { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
+  .detail-meta { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+  .detail-score-box {
+    width: 68px; height: 68px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 30px; font-weight: 700;
+    border: 2px solid transparent;
+  }
+
+  /* ─── Radar + bars grid ─── */
+  .detail-grid { display: grid; grid-template-columns: 300px 1fr; gap: 28px; }
+  @media (max-width: 860px) { .detail-grid { grid-template-columns: 1fr; } }
+  .radar-wrap { display: flex; justify-content: center; align-items: center; }
+
+  /* ─── Score bars ─── */
+  .score-row { margin-bottom: 12px; }
+  .score-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .score-dim { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .score-val { font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+  .score-track { display: flex; gap: 3px; }
+  .score-seg {
+    flex: 1; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.05);
+    transition: background 0.35s ease;
+  }
+  .score-seg.filled { }
+  .score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ─── Notes ─── */
+  .notes {
+    margin-top: 24px; padding: 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+  }
+  .notes-title {
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .notes p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ─── Compare toggle ─── */
+  .compare-section { margin-top: 36px; animation: fadeUp 0.5s ease 0.2s both; }
+  .compare-title {
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;
+  }
+  .compare-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .compare-card {
+    padding: 14px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .compare-card:hover { border-color: rgba(255,255,255,0.12); }
+  .compare-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .compare-card-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .compare-mini-bars { display: flex; gap: 2px; height: 20px; align-items: flex-end; }
+  .compare-mini-bar {
+    flex: 1; border-radius: 2px 2px 0 0;
+    transition: height 0.3s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="shell" id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA — Update here or replace with API call
+// ═══════════════════════════════════════════
+const CUSTOMERS = [
+  {
+    name: "AMN", band: "Strong", total: 16,
+    comment: "All good. The MCP and in person hands-on work paid off. Next step: Full MCP enablement and access to FK.",
+    scores: { M:2, E:2, D1:2, D2:2, P:2, I:2, C1:2, C2:2 }
+  },
+  {
+    name: "GC Rieber", band: "Strong", total: 14,
+    comment: "Big turnaround like AMN, team going into models, using dashboard for maintenance. More users. MCP adoption key.",
+    scores: { M:1, E:2, D1:2, D2:2, P:2, I:1, C1:2, C2:2 }
+  },
+  {
+    name: "Shell", band: "Moderate +", total: 12,
+    comment: "Lack of visibility in RFI preparation is a risk. Competition landscape unclear. Champion strength could be stronger.",
+    scores: { M:2, E:2, D1:1, D2:2, P:2, I:2, C1:1, C2:0 }
+  },
+  {
+    name: "VEAS", band: "Moderate −", total: 10,
+    comment: "Value and operationalization discussion remains hard. UC on volatility + MCP need to land for crystallization moment.",
+    scores: { M:1, E:2, D1:1, D2:1, P:2, I:1, C1:1, C2:1 }
+  },
+  {
+    name: "Gassco", band: "Moderate −", total: 9,
+    comment: "POC extension not secured. EB not identified. Budget not secured. IT needed to release data. Value demonstrated to Champion.",
+    scores: { M:1, E:1, D1:1, D2:1, P:1, I:2, C1:2, C2:0 }
+  },
+  {
+    name: "TINE", band: "Weak", total: 7,
+    comment: "High renewal risk with Central. Need to finalize value demonstration in March and build strong case for renewal and upsell.",
+    scores: { M:1, E:2, D1:0, D2:0, P:0, I:1, C1:2, C2:1 }
+  }
+];
+
+const DIMS = [
+  { key:"M",  label:"Metrics",        short:"M" },
+  { key:"E",  label:"Econ. Buyer",    short:"E" },
+  { key:"D1", label:"Dec. Criteria",  short:"D" },
+  { key:"D2", label:"Dec. Process",   short:"D" },
+  { key:"P",  label:"Paper Process",  short:"P" },
+  { key:"I",  label:"Identify Pain",  short:"I" },
+  { key:"C1", label:"Champion",       short:"C" },
+  { key:"C2", label:"Competition",    short:"C" }
+];
+
+const SCORE_TEXT = {
+  M:  ["No metrics","Not fully quantified","Validated with customer"],
+  E:  ["Not identified","Identified, no access","Met and validated"],
+  D1: ["Not identified","Identified, no influence","Influenced in our favor"],
+  D2: ["Cannot define","No players or timeline","All steps and timelines"],
+  P:  ["Cannot define steps","Not all players or timeline","All steps and timelines"],
+  I:  ["No pain identified","Pain but not quantified","Pain and impact quantified"],
+  C1: ["No champion","One champion tested","Multiple champions"],
+  C2: ["Not identified","No differentiation confirmed","Can defend differentiation"]
+};
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const bc = (band) => {
+  if (band.includes("Strong"))   return { bg:"rgba(61,220,151,0.08)", text:"#3DDC97", ring:"#3DDC9744" };
+  if (band.includes("Moderate")) return { bg:"rgba(245,197,66,0.08)", text:"#F5C542", ring:"#F5C54244" };
+  return { bg:"rgba(240,96,96,0.08)", text:"#F06060", ring:"#F0606044" };
+};
+const sc = v => v===2?"#3DDC97":v===1?"#F5C542":"#F06060";
+
+// ═══════════════════════════════════════════
+// RADAR SVG GENERATOR
+// ═══════════════════════════════════════════
+function radarSVG(scores, size=290) {
+  const cx=size/2, cy=size/2, maxR=size*0.37;
+  const n=DIMS.length, step=2*Math.PI/n, off=-Math.PI/2;
+  const pt = (i,r) => {
+    const a=off+i*step;
+    return [cx+r*Math.cos(a), cy+r*Math.sin(a)];
+  };
+
+  let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Grid rings
+  for (let lv=1; lv<=2; lv++) {
+    const r=(lv/2)*maxR;
+    const pts=DIMS.map((_,i)=>pt(i,r));
+    svg += `<polygon points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+  }
+  // Axes
+  DIMS.forEach((_,i) => {
+    const [ex,ey]=pt(i,maxR);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  });
+  // Data polygon
+  const dPts = DIMS.map((d,i) => pt(i, (scores[d.key]/2)*maxR));
+  svg += `<polygon points="${dPts.map(p=>p.join(",")).join(" ")}" fill="rgba(91,156,246,0.12)" stroke="#5B9CF6" stroke-width="2" stroke-linejoin="round">
+    <animate attributeName="opacity" from="0" to="1" dur="0.6s" fill="freeze"/>
+  </polygon>`;
+  // Dots
+  dPts.forEach((p,i) => {
+    svg += `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${sc(scores[DIMS[i].key])}" stroke="#0B0E14" stroke-width="2.5"/>`;
+  });
+  // Labels
+  DIMS.forEach((dim,i) => {
+    const [lx,ly] = pt(i, maxR+24);
+    const anchor = lx<cx-10?"end":lx>cx+10?"start":"middle";
+    svg += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="central" fill="rgba(255,255,255,0.5)" font-size="10.5" font-family="'Instrument Sans',sans-serif" font-weight="500">${dim.label}</text>`;
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+let selected = 0;
+
+function render() {
+  const c = CUSTOMERS[selected];
+  const colors = bc(c.band);
+  const counts = {
+    strong:   CUSTOMERS.filter(x=>x.band.includes("Strong")).length,
+    moderate: CUSTOMERS.filter(x=>x.band.includes("Moderate")).length,
+    weak:     CUSTOMERS.filter(x=>x.band.includes("Weak")).length,
+  };
+  const avg = (CUSTOMERS.reduce((s,x)=>s+x.total,0)/CUSTOMERS.length).toFixed(1);
+
+  let html = `
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-tag">Intelecy Customer Success</div>
+    <h1>MEDDPICC Scorecards</h1>
+    <p>${CUSTOMERS.length} customers tracked · Updated Mar 4, 2026</p>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-row">
+    <div class="pill" style="animation-delay:0s">
+      <div class="dot" style="background:#3DDC97;box-shadow:0 0 6px #3DDC97"></div>
+      <span class="val" style="color:#3DDC97">${counts.strong}</span>
+      <span class="lbl">Strong</span>
+    </div>
+    <div class="pill" style="animation-delay:0.05s">
+      <div class="dot" style="background:#F5C542;box-shadow:0 0 6px #F5C542"></div>
+      <span class="val" style="color:#F5C542">${counts.moderate}</span>
+      <span class="lbl">Moderate</span>
+    </div>
+    <div class="pill" style="animation-delay:0.1s">
+      <div class="dot" style="background:#F06060;box-shadow:0 0 6px #F06060"></div>
+      <span class="val" style="color:#F06060">${counts.weak}</span>
+      <span class="lbl">Weak</span>
+    </div>
+    <div class="pill-spacer"></div>
+    <div class="pill" style="animation-delay:0.15s">
+      <span class="lbl">Avg</span>
+      <span class="val" style="color:#5B9CF6">${avg}</span>
+      <span class="lbl" style="color:var(--text-muted)">/ 16</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-title">Customers</div>
+      ${CUSTOMERS.map((cx,i) => {
+        const bx = bc(cx.band);
+        return `<button class="cust-btn ${i===selected?'active':''}" onclick="selectCustomer(${i})">
+          <div class="cust-avatar" style="background:${bx.bg};color:${bx.text};border-color:${bx.ring}">${cx.total}</div>
+          <div class="cust-info">
+            <div class="cust-name">${cx.name}</div>
+            <span class="cust-band" style="background:${bx.bg};color:${bx.text}">${cx.band}</span>
+          </div>
+        </button>`;
+      }).join('')}
+    </div>
+
+    <!-- Detail -->
+    <div class="detail">
+      <div class="detail-head">
+        <div>
+          <div class="detail-name">${c.name}</div>
+          <div class="detail-meta">
+            <span class="cust-band" style="background:${colors.bg};color:${colors.text};font-size:12px;padding:3px 12px;border-radius:7px">${c.band}</span>
+            <span style="font-size:12px;color:var(--text-muted)">Mar 4, 2026</span>
+          </div>
+        </div>
+        <div class="detail-score-box" style="background:${colors.bg};color:${colors.text};border-color:${colors.ring}">
+          ${c.total}
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="radar-wrap">
+          ${radarSVG(c.scores)}
+        </div>
+        <div>
+          ${DIMS.map(d => {
+            const v = c.scores[d.key];
+            const col = sc(v);
+            return `<div class="score-row">
+              <div class="score-row-head">
+                <span class="score-dim">${d.label}</span>
+                <span class="score-val" style="color:${col}">${v}/2</span>
+              </div>
+              <div class="score-track">
+                ${[0,1,2].map(lv =>
+                  `<div class="score-seg${lv<=v?' filled':''}" style="background:${lv<=v?col:'rgba(255,255,255,0.05)'}"></div>`
+                ).join('')}
+              </div>
+              <div class="score-label">${SCORE_TEXT[d.key][v]}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="notes-title">CSM Notes</div>
+        <p>${c.comment}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compare section -->
+  <div class="compare-section">
+    <div class="compare-title">Portfolio Comparison</div>
+    <div class="compare-grid">
+      ${CUSTOMERS.map((cx,i) => {
+        const bx = bc(cx.band);
+        return `<div class="compare-card ${i===selected?'active':''}" onclick="selectCustomer(${i})">
+          <div class="compare-card-name" style="color:${bx.text}">${cx.name} <span style="font-family:var(--font-mono);font-size:11px;opacity:0.7">${cx.total}</span></div>
+          <div class="compare-mini-bars">
+            ${DIMS.map(d => {
+              const v = cx.scores[d.key];
+              const h = v===0?3:v===1?12:20;
+              return `<div class="compare-mini-bar" style="height:${h}px;background:${sc(v)}"></div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  document.getElementById('app').innerHTML = html;
+}
+
+function selectCustomer(i) {
+  selected = i;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
