@@ -3,440 +3,335 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MEDDPICC Scorecards — Intelecy CS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>MEDDPICC Scorecard — Intelecy CS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #0B0E14;
-    --surface: rgba(255,255,255,0.025);
-    --border: rgba(255,255,255,0.06);
-    --text-primary: #E8ECF4;
-    --text-secondary: rgba(255,255,255,0.55);
-    --text-muted: rgba(255,255,255,0.3);
-    --accent: #5B9CF6;
-    --green: #3DDC97;
-    --yellow: #F5C542;
-    --red: #F06060;
-    --font-body: 'Instrument Sans', -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',-apple-system,sans-serif;background:#0D1117;color:#E6EDF3;min-height:100vh}
+  .header{background:linear-gradient(135deg,#161B22 0%,#0D1117 50%,#1A1040 100%);border-bottom:1px solid #30363D;padding:24px 32px 18px;display:flex;align-items:center;gap:14px}
+  .header-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#EC4899);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .header h1{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+  .header p{font-size:12px;color:#8B949E;margin-top:2px}
+  .container{padding:20px 32px;max-width:1400px;margin:0 auto}
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+  /* Time slider */
+  .slider-box{background:#161B22;border-radius:12px;border:1px solid #30363D;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+  .slider-label{font-size:13px;font-weight:600;color:#8B949E;white-space:nowrap}
+  .slider-period{font-size:15px;font-weight:700;color:#7C3AED;min-width:100px}
+  .slider-track{flex:1;position:relative}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:#21262D;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#EC4899);cursor:pointer;border:2px solid #0D1117}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#EC4899);cursor:pointer;border:2px solid #0D1117}
+  .slider-ticks{display:flex;justify-content:space-between;margin-top:6px}
+  .slider-ticks span{font-size:10px;color:#484F58;cursor:pointer}
+  .slider-ticks span.active{color:#7C3AED;font-weight:700}
 
-  body {
-    background: var(--bg);
-    color: var(--text-primary);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  .customers{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .cust-pill{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:2px solid #30363D;background:#161B22;color:#8B949E;cursor:pointer;transition:all .2s;font-size:12px;font-weight:600;font-family:inherit}
+  .cust-pill.active{background:var(--c-bg);border-color:var(--c);color:var(--c)}
+  .cust-dot{width:7px;height:7px;border-radius:50%}
+  .cust-score{font-size:10px;opacity:.7}
+  .tabs{display:flex;gap:3px;margin-bottom:20px;background:#161B22;border-radius:8px;padding:3px;width:fit-content}
+  .tab{padding:7px 16px;border-radius:6px;border:none;background:transparent;color:#8B949E;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .2s}
+  .tab.active{background:#7C3AED;color:#fff}
 
-  /* Subtle grain overlay */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    opacity: 0.035;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 200px;
-  }
+  .radar-layout{display:grid;grid-template-columns:1fr 320px;gap:20px}
+  .radar-box{background:#161B22;border-radius:14px;border:1px solid #30363D;padding:20px;display:flex;align-items:center;justify-content:center;min-height:420px}
+  .side-cards{display:flex;flex-direction:column;gap:10px}
+  .card{background:#161B22;border-radius:14px;padding:18px;border:1px solid var(--c-border,#30363D)}
+  .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .card-name{font-weight:700;font-size:15px}
+  .card-band{padding:3px 10px;border-radius:16px;font-size:10px;font-weight:700;letter-spacing:.5px}
+  .card-csm{font-size:12px;color:#8B949E;margin-bottom:6px}
+  .card-score{font-size:32px;font-weight:800}
+  .card-max{font-size:13px;color:#484F58}
+  .card-bar{height:5px;border-radius:3px;background:#21262D;overflow:hidden;margin-top:8px}
+  .card-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+  .card-desc{font-size:10px;color:#8B949E;margin-top:6px}
+  .card-delta{font-size:11px;font-weight:700;margin-left:6px}
 
-  .shell { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 40px 32px; }
+  .score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px}
+  .score-card{background:#161B22;border-radius:14px;border:1px solid #30363D;padding:22px}
+  .score-card h3{margin-bottom:14px;font-size:17px}
+  .el-row{margin-bottom:12px}.el-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+  .el-label{font-weight:600;font-size:12px}.el-val{font-size:10px;color:#8B949E}
+  .el-btns{display:flex;gap:5px}
+  .el-btn{flex:1;padding:7px 4px;border-radius:7px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;border:1px solid #30363D;background:#0D1117;color:#8B949E}
+  .el-btn.s0{border-color:#EA4335;background:#EA433520;color:#EA4335}
+  .el-btn.s1{border-color:#FBBC04;background:#FBBC0420;color:#FBBC04}
+  .el-btn.s2{border-color:#34A853;background:#34A85320;color:#34A853}
+  .el-desc{font-size:9px;color:#484F58;margin-top:3px}
+  .score-total{margin-top:14px;padding:10px 14px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+  .score-total-label{font-weight:700}.score-total-val{font-size:22px;font-weight:800}
 
-  /* ─── Header ─── */
-  .header { margin-bottom: 36px; }
-  .header-tag {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 11px; font-weight: 600; color: var(--accent);
-    text-transform: uppercase; letter-spacing: 0.12em;
-    margin-bottom: 10px;
-  }
-  .header-tag::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 8px var(--accent);
-  }
-  .header h1 {
-    font-size: 32px; font-weight: 700; letter-spacing: -0.04em;
-    background: linear-gradient(135deg, #F0F4FF 0%, #8BAAF0 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .header p { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .compare-box{background:#161B22;border-radius:14px;border:1px solid #30363D;overflow:auto}
+  .compare-box table{width:100%;border-collapse:collapse;font-size:12px}
+  .compare-box th{padding:12px 10px;text-align:center;color:#8B949E;font-weight:600;font-size:10px;border-bottom:1px solid #30363D}
+  .compare-box th:first-child{text-align:left;padding-left:18px}
+  .compare-box td{padding:10px;text-align:center;border-bottom:1px solid #21262D}
+  .compare-box td:first-child{text-align:left;padding-left:18px;font-weight:700}
+  .csm-sub{font-size:10px;color:#8B949E;font-weight:400}
+  .score-chip{display:inline-block;width:26px;height:26px;line-height:26px;border-radius:7px;font-weight:700;font-size:12px}
 
-  /* ─── Summary pills ─── */
-  .summary-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
-  .pill {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 18px; border-radius: 12px;
-    background: var(--surface); border: 1px solid var(--border);
-    animation: fadeUp 0.5s ease both;
-  }
-  .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .pill .val { font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
-  .pill .lbl { font-size: 12px; color: var(--text-secondary); }
-  .pill-spacer { flex: 1; }
-
-  /* ─── Main grid ─── */
-  .main { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
-  @media (max-width: 860px) { .main { grid-template-columns: 1fr; } }
-
-  /* ─── Sidebar ─── */
-  .sidebar {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 18px; padding: 10px 8px;
-    animation: fadeUp 0.4s ease both;
-  }
-  .sidebar-title {
-    padding: 10px 14px 12px; font-size: 10px; font-weight: 600;
-    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
-  }
-  .cust-btn {
-    all: unset; cursor: pointer; display: flex; align-items: center; gap: 12px;
-    width: 100%; padding: 11px 14px; border-radius: 12px;
-    border: 1px solid transparent; transition: all 0.2s ease;
-  }
-  .cust-btn:hover { background: rgba(255,255,255,0.04); }
-  .cust-btn.active { background: rgba(255,255,255,0.06); border-color: var(--border); }
-  .cust-avatar {
-    width: 40px; height: 40px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-mono); font-size: 16px; font-weight: 700;
-    flex-shrink: 0; border: 1.5px solid transparent;
-  }
-  .cust-info { text-align: left; }
-  .cust-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-  .cust-band {
-    display: inline-block; font-size: 10px; font-weight: 600;
-    padding: 1px 8px; border-radius: 5px; margin-top: 3px;
-  }
-
-  /* ─── Detail panel ─── */
-  .detail {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 18px; padding: 32px;
-    animation: fadeUp 0.5s ease 0.1s both;
-  }
-  .detail-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .detail-name { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
-  .detail-meta { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
-  .detail-score-box {
-    width: 68px; height: 68px; border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-mono); font-size: 30px; font-weight: 700;
-    border: 2px solid transparent;
-  }
-
-  /* ─── Radar + bars grid ─── */
-  .detail-grid { display: grid; grid-template-columns: 300px 1fr; gap: 28px; }
-  @media (max-width: 860px) { .detail-grid { grid-template-columns: 1fr; } }
-  .radar-wrap { display: flex; justify-content: center; align-items: center; }
-
-  /* ─── Score bars ─── */
-  .score-row { margin-bottom: 12px; }
-  .score-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-  .score-dim { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
-  .score-val { font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
-  .score-track { display: flex; gap: 3px; }
-  .score-seg {
-    flex: 1; height: 6px; border-radius: 3px;
-    background: rgba(255,255,255,0.05);
-    transition: background 0.35s ease;
-  }
-  .score-seg.filled { }
-  .score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-
-  /* ─── Notes ─── */
-  .notes {
-    margin-top: 24px; padding: 18px; border-radius: 14px;
-    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
-  }
-  .notes-title {
-    font-size: 10px; font-weight: 600; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
-  }
-  .notes p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
-
-  /* ─── Compare toggle ─── */
-  .compare-section { margin-top: 36px; animation: fadeUp 0.5s ease 0.2s both; }
-  .compare-title {
-    font-size: 10px; font-weight: 600; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;
-  }
-  .compare-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-  .compare-card {
-    padding: 14px; border-radius: 12px;
-    background: var(--surface); border: 1px solid var(--border);
-    cursor: pointer; transition: all 0.2s ease;
-  }
-  .compare-card:hover { border-color: rgba(255,255,255,0.12); }
-  .compare-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .compare-card-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .compare-mini-bars { display: flex; gap: 2px; height: 20px; align-items: flex-end; }
-  .compare-mini-bar {
-    flex: 1; border-radius: 2px 2px 0 0;
-    transition: height 0.3s ease;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .ref{margin-top:28px;background:#161B22;border-radius:14px;border:1px solid #30363D;padding:22px}
+  .ref h3{margin-bottom:14px;font-size:14px;font-weight:700}
+  .ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .ref-item{padding:14px;border-radius:10px}
+  .ref-item strong{display:block;margin-bottom:3px;font-size:13px}
+  .ref-item span{font-size:11px;color:#8B949E}
+  @media(max-width:900px){.radar-layout{grid-template-columns:1fr}.ref-grid{grid-template-columns:1fr}.container{padding:16px}}
 </style>
 </head>
 <body>
-<div class="shell" id="app"></div>
+<div class="header">
+  <div class="header-icon">🕸️</div>
+  <div><h1>MEDDPICC Scorecard</h1><p>Intelecy Customer Success — Deal Qualification Dashboard</p></div>
+</div>
+<div class="container">
+  <!-- TIME SLIDER -->
+  <div class="slider-box">
+    <span class="slider-label">MBR Period:</span>
+    <span class="slider-period" id="periodLabel">March 2026</span>
+    <div class="slider-track">
+      <input type="range" id="periodSlider" min="0" max="0" value="0" step="1">
+      <div class="slider-ticks" id="sliderTicks"></div>
+    </div>
+  </div>
+  <div class="customers" id="custPills"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="viewContainer"></div>
+  <div class="ref">
+    <h3>MEDDPICC Scoring Reference</h3>
+    <div class="ref-grid">
+      <div class="ref-item" style="background:#34A85310;border:1px solid #34A85330"><strong style="color:#34A853">STRONG (13–16)</strong><span>LOW RISK — Strong position to manage the opportunity</span></div>
+      <div class="ref-item" style="background:#FBBC0410;border:1px solid #FBBC0430"><strong style="color:#FBBC04">MODERATE (8–12)</strong><span>AT RISK — Several gaps impacting ability to manage</span></div>
+      <div class="ref-item" style="background:#EA433510;border:1px solid #EA433530"><strong style="color:#EA4335">WEAK (0–7)</strong><span>HIGH RISK — Very little information, difficulty determining fit</span></div>
+    </div>
+  </div>
+</div>
 
 <script>
-// ═══════════════════════════════════════════
-// DATA — Update here or replace with API call
-// ═══════════════════════════════════════════
-const CUSTOMERS = [
-  {
-    name: "AMN", band: "Strong", total: 16,
-    comment: "All good. The MCP and in person hands-on work paid off. Next step: Full MCP enablement and access to FK.",
-    scores: { M:2, E:2, D1:2, D2:2, P:2, I:2, C1:2, C2:2 }
-  },
-  {
-    name: "GC Rieber", band: "Strong", total: 14,
-    comment: "Big turnaround like AMN, team going into models, using dashboard for maintenance. More users. MCP adoption key.",
-    scores: { M:1, E:2, D1:2, D2:2, P:2, I:1, C1:2, C2:2 }
-  },
-  {
-    name: "Shell", band: "Moderate +", total: 12,
-    comment: "Lack of visibility in RFI preparation is a risk. Competition landscape unclear. Champion strength could be stronger.",
-    scores: { M:2, E:2, D1:1, D2:2, P:2, I:2, C1:1, C2:0 }
-  },
-  {
-    name: "VEAS", band: "Moderate −", total: 10,
-    comment: "Value and operationalization discussion remains hard. UC on volatility + MCP need to land for crystallization moment.",
-    scores: { M:1, E:2, D1:1, D2:1, P:2, I:1, C1:1, C2:1 }
-  },
-  {
-    name: "Gassco", band: "Moderate −", total: 9,
-    comment: "POC extension not secured. EB not identified. Budget not secured. IT needed to release data. Value demonstrated to Champion.",
-    scores: { M:1, E:1, D1:1, D2:1, P:1, I:2, C1:2, C2:0 }
-  },
-  {
-    name: "TINE", band: "Weak", total: 7,
-    comment: "High renewal risk with Central. Need to finalize value demonstration in March and build strong case for renewal and upsell.",
-    scores: { M:1, E:2, D1:0, D2:0, P:0, I:1, C1:2, C2:1 }
-  }
-];
+// ============================================================
+// CONFIGURATION — UPDATE THESE AFTER EACH MBR
+// ============================================================
 
-const DIMS = [
-  { key:"M",  label:"Metrics",        short:"M" },
-  { key:"E",  label:"Econ. Buyer",    short:"E" },
-  { key:"D1", label:"Dec. Criteria",  short:"D" },
-  { key:"D2", label:"Dec. Process",   short:"D" },
-  { key:"P",  label:"Paper Process",  short:"P" },
-  { key:"I",  label:"Identify Pain",  short:"I" },
-  { key:"C1", label:"Champion",       short:"C" },
-  { key:"C2", label:"Competition",    short:"C" }
-];
-
-const SCORE_TEXT = {
-  M:  ["No metrics","Not fully quantified","Validated with customer"],
-  E:  ["Not identified","Identified, no access","Met and validated"],
-  D1: ["Not identified","Identified, no influence","Influenced in our favor"],
-  D2: ["Cannot define","No players or timeline","All steps and timelines"],
-  P:  ["Cannot define steps","Not all players or timeline","All steps and timelines"],
-  I:  ["No pain identified","Pain but not quantified","Pain and impact quantified"],
-  C1: ["No champion","One champion tested","Multiple champions"],
-  C2: ["Not identified","No differentiation confirmed","Can defend differentiation"]
+const CUSTOMERS = {
+  Shell:       { csm: "Rémi Goget",       color: "#FBBC04" },
+  Gassco:      { csm: "Rémi Goget",       color: "#4285F4" },
+  VEAS:        { csm: "Kjersti Røssland", color: "#34A853" },
+  "GC Rieber": { csm: "Abi Rydland",      color: "#8E24AA" },
+  TINE:        { csm: "Abi Rydland",      color: "#EA4335" },
+  AMN:         { csm: "Abi Rydland",      color: "#FF6D00" },
 };
 
-// ═══════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════
-const bc = (band) => {
-  if (band.includes("Strong"))   return { bg:"rgba(61,220,151,0.08)", text:"#3DDC97", ring:"#3DDC9744" };
-  if (band.includes("Moderate")) return { bg:"rgba(245,197,66,0.08)", text:"#F5C542", ring:"#F5C54244" };
-  return { bg:"rgba(240,96,96,0.08)", text:"#F06060", ring:"#F0606044" };
-};
-const sc = v => v===2?"#3DDC97":v===1?"#F5C542":"#F06060";
+// Each period has scores per customer: [M, E, D1, D2, P, I, C1, C2]
+const PERIODS = [
+  {
+    label: "March 2026",
+    scores: {
+      Shell:       [2, 2, 1, 2, 1, 2, 1, 0],
+      Gassco:      [1, 1, 1, 1, 1, 1, 2, 0],
+      VEAS:        [1, 2, 1, 1, 1, 1, 1, 1],
+      "GC Rieber": [1, 2, 2, 2, 1, 2, 2, 2],
+      TINE:        [2, 1, 0, 0, 0, 1, 2, 0],
+      AMN:         [1, 2, 2, 2, 1, 1, 2, 2],
+    }
+  },
+  // ---- COPY THIS BLOCK FOR EACH NEW MBR ----
+  // {
+  //   label: "April 2026",
+  //   scores: {
+  //     Shell:       [2, 2, 1, 2, 1, 2, 1, 1],
+  //     Gassco:      [1, 1, 1, 1, 1, 1, 2, 0],
+  //     VEAS:        [1, 2, 1, 1, 1, 1, 1, 1],
+  //     "GC Rieber": [2, 2, 2, 2, 1, 2, 2, 2],
+  //     TINE:        [2, 1, 1, 0, 0, 1, 2, 0],
+  //     AMN:         [1, 2, 2, 2, 2, 1, 2, 2],
+  //   }
+  // },
+];
 
-// ═══════════════════════════════════════════
-// RADAR SVG GENERATOR
-// ═══════════════════════════════════════════
-function radarSVG(scores, size=290) {
-  const cx=size/2, cy=size/2, maxR=size*0.37;
-  const n=DIMS.length, step=2*Math.PI/n, off=-Math.PI/2;
-  const pt = (i,r) => {
-    const a=off+i*step;
-    return [cx+r*Math.cos(a), cy+r*Math.sin(a)];
-  };
+// ============================================================
+// ENGINE — NO NEED TO EDIT BELOW
+// ============================================================
 
-  let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+const ELEMENTS = [
+  { key: 0, label: "Metrics" },
+  { key: 1, label: "Economic Buyer" },
+  { key: 2, label: "Decision Criteria" },
+  { key: 3, label: "Decision Process" },
+  { key: 4, label: "Paper Process" },
+  { key: 5, label: "Identify Pain" },
+  { key: 6, label: "Champion" },
+  { key: 7, label: "Competition" },
+];
 
-  // Grid rings
-  for (let lv=1; lv<=2; lv++) {
-    const r=(lv/2)*maxR;
-    const pts=DIMS.map((_,i)=>pt(i,r));
-    svg += `<polygon points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
-  }
-  // Axes
-  DIMS.forEach((_,i) => {
-    const [ex,ey]=pt(i,maxR);
-    svg += `<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+const BANDS = [
+  { min:13, max:16, label:"STRONG",   color:"#34A853", desc:"LOW RISK — Strong position" },
+  { min:8,  max:12, label:"MODERATE", color:"#FBBC04", desc:"AT RISK — Several gaps" },
+  { min:0,  max:7,  label:"WEAK",     color:"#EA4335", desc:"HIGH RISK — Very little info" },
+];
+
+function getBand(s) { return BANDS.find(b => s >= b.min && s <= b.max) || BANDS[2]; }
+function total(cust, pi) { return PERIODS[pi].scores[cust].reduce((a,b) => a+b, 0); }
+function getScore(cust, pi) { return PERIODS[pi].scores[cust]; }
+
+let currentPeriod = PERIODS.length - 1;
+let selected = ["Shell", "Gassco", "VEAS", "GC Rieber", "TINE", "AMN"];
+let view = "radar";
+let radarChart = null;
+
+// Slider
+function initSlider() {
+  const slider = document.getElementById("periodSlider");
+  slider.max = PERIODS.length - 1;
+  slider.value = currentPeriod;
+  slider.oninput = function() { currentPeriod = +this.value; render(); };
+  renderTicks();
+}
+function renderTicks() {
+  const el = document.getElementById("sliderTicks");
+  el.innerHTML = "";
+  PERIODS.forEach((p, i) => {
+    const s = document.createElement("span");
+    s.textContent = p.label.replace(" 2026","");
+    s.className = i === currentPeriod ? "active" : "";
+    s.onclick = () => { currentPeriod = i; document.getElementById("periodSlider").value = i; render(); };
+    el.appendChild(s);
   });
-  // Data polygon
-  const dPts = DIMS.map((d,i) => pt(i, (scores[d.key]/2)*maxR));
-  svg += `<polygon points="${dPts.map(p=>p.join(",")).join(" ")}" fill="rgba(91,156,246,0.12)" stroke="#5B9CF6" stroke-width="2" stroke-linejoin="round">
-    <animate attributeName="opacity" from="0" to="1" dur="0.6s" fill="freeze"/>
-  </polygon>`;
-  // Dots
-  dPts.forEach((p,i) => {
-    svg += `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${sc(scores[DIMS[i].key])}" stroke="#0B0E14" stroke-width="2.5"/>`;
-  });
-  // Labels
-  DIMS.forEach((dim,i) => {
-    const [lx,ly] = pt(i, maxR+24);
-    const anchor = lx<cx-10?"end":lx>cx+10?"start":"middle";
-    svg += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="central" fill="rgba(255,255,255,0.5)" font-size="10.5" font-family="'Instrument Sans',sans-serif" font-weight="500">${dim.label}</text>`;
-  });
-
-  svg += `</svg>`;
-  return svg;
 }
 
-// ═══════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════
-let selected = 0;
-
-function render() {
-  const c = CUSTOMERS[selected];
-  const colors = bc(c.band);
-  const counts = {
-    strong:   CUSTOMERS.filter(x=>x.band.includes("Strong")).length,
-    moderate: CUSTOMERS.filter(x=>x.band.includes("Moderate")).length,
-    weak:     CUSTOMERS.filter(x=>x.band.includes("Weak")).length,
-  };
-  const avg = (CUSTOMERS.reduce((s,x)=>s+x.total,0)/CUSTOMERS.length).toFixed(1);
-
-  let html = `
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-tag">Intelecy Customer Success</div>
-    <h1>MEDDPICC Scorecards</h1>
-    <p>${CUSTOMERS.length} customers tracked · Updated Mar 4, 2026</p>
-  </div>
-
-  <!-- SUMMARY -->
-  <div class="summary-row">
-    <div class="pill" style="animation-delay:0s">
-      <div class="dot" style="background:#3DDC97;box-shadow:0 0 6px #3DDC97"></div>
-      <span class="val" style="color:#3DDC97">${counts.strong}</span>
-      <span class="lbl">Strong</span>
-    </div>
-    <div class="pill" style="animation-delay:0.05s">
-      <div class="dot" style="background:#F5C542;box-shadow:0 0 6px #F5C542"></div>
-      <span class="val" style="color:#F5C542">${counts.moderate}</span>
-      <span class="lbl">Moderate</span>
-    </div>
-    <div class="pill" style="animation-delay:0.1s">
-      <div class="dot" style="background:#F06060;box-shadow:0 0 6px #F06060"></div>
-      <span class="val" style="color:#F06060">${counts.weak}</span>
-      <span class="lbl">Weak</span>
-    </div>
-    <div class="pill-spacer"></div>
-    <div class="pill" style="animation-delay:0.15s">
-      <span class="lbl">Avg</span>
-      <span class="val" style="color:#5B9CF6">${avg}</span>
-      <span class="lbl" style="color:var(--text-muted)">/ 16</span>
-    </div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="main">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-title">Customers</div>
-      ${CUSTOMERS.map((cx,i) => {
-        const bx = bc(cx.band);
-        return `<button class="cust-btn ${i===selected?'active':''}" onclick="selectCustomer(${i})">
-          <div class="cust-avatar" style="background:${bx.bg};color:${bx.text};border-color:${bx.ring}">${cx.total}</div>
-          <div class="cust-info">
-            <div class="cust-name">${cx.name}</div>
-            <span class="cust-band" style="background:${bx.bg};color:${bx.text}">${cx.band}</span>
-          </div>
-        </button>`;
-      }).join('')}
-    </div>
-
-    <!-- Detail -->
-    <div class="detail">
-      <div class="detail-head">
-        <div>
-          <div class="detail-name">${c.name}</div>
-          <div class="detail-meta">
-            <span class="cust-band" style="background:${colors.bg};color:${colors.text};font-size:12px;padding:3px 12px;border-radius:7px">${c.band}</span>
-            <span style="font-size:12px;color:var(--text-muted)">Mar 4, 2026</span>
-          </div>
-        </div>
-        <div class="detail-score-box" style="background:${colors.bg};color:${colors.text};border-color:${colors.ring}">
-          ${c.total}
-        </div>
-      </div>
-
-      <div class="detail-grid">
-        <div class="radar-wrap">
-          ${radarSVG(c.scores)}
-        </div>
-        <div>
-          ${DIMS.map(d => {
-            const v = c.scores[d.key];
-            const col = sc(v);
-            return `<div class="score-row">
-              <div class="score-row-head">
-                <span class="score-dim">${d.label}</span>
-                <span class="score-val" style="color:${col}">${v}/2</span>
-              </div>
-              <div class="score-track">
-                ${[0,1,2].map(lv =>
-                  `<div class="score-seg${lv<=v?' filled':''}" style="background:${lv<=v?col:'rgba(255,255,255,0.05)'}"></div>`
-                ).join('')}
-              </div>
-              <div class="score-label">${SCORE_TEXT[d.key][v]}</div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-
-      <div class="notes">
-        <div class="notes-title">CSM Notes</div>
-        <p>${c.comment}</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Compare section -->
-  <div class="compare-section">
-    <div class="compare-title">Portfolio Comparison</div>
-    <div class="compare-grid">
-      ${CUSTOMERS.map((cx,i) => {
-        const bx = bc(cx.band);
-        return `<div class="compare-card ${i===selected?'active':''}" onclick="selectCustomer(${i})">
-          <div class="compare-card-name" style="color:${bx.text}">${cx.name} <span style="font-family:var(--font-mono);font-size:11px;opacity:0.7">${cx.total}</span></div>
-          <div class="compare-mini-bars">
-            ${DIMS.map(d => {
-              const v = cx.scores[d.key];
-              const h = v===0?3:v===1?12:20;
-              return `<div class="compare-mini-bar" style="height:${h}px;background:${sc(v)}"></div>`;
-            }).join('')}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>`;
-
-  document.getElementById('app').innerHTML = html;
-}
-
-function selectCustomer(i) {
-  selected = i;
+function toggleCust(c) {
+  const i = selected.indexOf(c);
+  if (i >= 0 && selected.length > 1) selected.splice(i, 1);
+  else if (i < 0) selected.push(c);
   render();
 }
+function setView(v) { view = v; render(); }
 
+function renderPills() {
+  const el = document.getElementById("custPills");
+  el.innerHTML = "";
+  Object.entries(CUSTOMERS).forEach(([name, info]) => {
+    const active = selected.includes(name);
+    const band = getBand(total(name, currentPeriod));
+    const btn = document.createElement("button");
+    btn.className = "cust-pill" + (active ? " active" : "");
+    btn.style.setProperty("--c", info.color);
+    btn.style.setProperty("--c-bg", info.color + "15");
+    btn.onclick = () => toggleCust(name);
+    btn.innerHTML = `<span class="cust-dot" style="background:${band.color}"></span>${name}<span class="cust-score">${total(name, currentPeriod)}/16</span>`;
+    el.appendChild(btn);
+  });
+}
+
+function renderTabs() {
+  const el = document.getElementById("tabs");
+  el.innerHTML = "";
+  [["radar","Radar View"],["compare","Compare All"]].forEach(([id,label]) => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (view === id ? " active" : "");
+    btn.onclick = () => setView(id);
+    btn.textContent = label;
+    el.appendChild(btn);
+  });
+}
+
+function renderRadar() {
+  const container = document.getElementById("viewContainer");
+  container.innerHTML = `<div class="radar-layout"><div class="radar-box"><canvas id="radarCanvas" width="440" height="440"></canvas></div><div class="side-cards" id="sideCards"></div></div>`;
+  const cards = document.getElementById("sideCards");
+  selected.forEach(c => {
+    const s = total(c, currentPeriod);
+    const band = getBand(s);
+    const info = CUSTOMERS[c];
+    // Delta from previous period
+    let deltaHtml = "";
+    if (currentPeriod > 0) {
+      const prev = total(c, currentPeriod - 1);
+      const diff = s - prev;
+      if (diff > 0) deltaHtml = `<span class="card-delta" style="color:#34A853">▲ +${diff}</span>`;
+      else if (diff < 0) deltaHtml = `<span class="card-delta" style="color:#EA4335">▼ ${diff}</span>`;
+      else deltaHtml = `<span class="card-delta" style="color:#484F58">= 0</span>`;
+    }
+    const div = document.createElement("div");
+    div.className = "card";
+    div.style.setProperty("--c-border", info.color + "40");
+    div.innerHTML = `
+      <div class="card-head"><span class="card-name" style="color:${info.color}">${c}</span><span class="card-band" style="background:${band.color}20;color:${band.color}">${band.label}</span></div>
+      <div class="card-csm">CSM: ${info.csm}</div>
+      <span class="card-score" style="color:${band.color}">${s}</span><span class="card-max">/16</span>${deltaHtml}
+      <div class="card-bar"><div class="card-bar-fill" style="width:${(s/16)*100}%;background:linear-gradient(90deg,${band.color},${info.color})"></div></div>
+      <div class="card-desc">${band.desc}</div>`;
+    cards.appendChild(div);
+  });
+  const ctx = document.getElementById("radarCanvas").getContext("2d");
+  const datasets = selected.map(c => ({
+    label: c,
+    data: getScore(c, currentPeriod),
+    borderColor: CUSTOMERS[c].color,
+    backgroundColor: CUSTOMERS[c].color + "20",
+    borderWidth: 2.5,
+    pointBackgroundColor: CUSTOMERS[c].color,
+    pointRadius: 4,
+  }));
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(ctx, {
+    type: "radar",
+    data: { labels: ELEMENTS.map(e => e.label), datasets },
+    options: {
+      responsive: false,
+      scales: { r: { min:0, max:2, ticks:{ stepSize:1, color:"#484F58", backdropColor:"transparent", font:{size:10} }, grid:{color:"#30363D"}, angleLines:{color:"#30363D"}, pointLabels:{color:"#8B949E",font:{size:11,weight:"600",family:"DM Sans"}} } },
+      plugins: {
+        legend:{ labels:{ color:"#8B949E", font:{family:"DM Sans",size:12}, usePointStyle:true, pointStyle:"circle" } },
+        tooltip:{ backgroundColor:"#1C2128", titleColor:"#E6EDF3", bodyColor:"#E6EDF3", borderColor:"#30363D", borderWidth:1, cornerRadius:8 }
+      }
+    }
+  });
+}
+
+function renderCompare() {
+  const container = document.getElementById("viewContainer");
+  let html = '<div class="compare-box"><table><thead><tr><th>Customer</th>';
+  ELEMENTS.forEach(e => html += `<th>${e.label}</th>`);
+  html += '<th>Total</th><th>Band</th>';
+  if (currentPeriod > 0) html += '<th>Δ</th>';
+  html += '</tr></thead><tbody>';
+  Object.keys(CUSTOMERS).forEach(c => {
+    const s = total(c, currentPeriod);
+    const band = getBand(s);
+    const info = CUSTOMERS[c];
+    html += `<tr><td style="color:${info.color}">${c}<div class="csm-sub">${info.csm}</div></td>`;
+    getScore(c, currentPeriod).forEach(v => {
+      const clr = v===0?"#EA4335":v===1?"#FBBC04":"#34A853";
+      html += `<td><span class="score-chip" style="background:${clr}20;color:${clr}">${v}</span></td>`;
+    });
+    html += `<td style="font-weight:800;font-size:17px;color:${band.color}">${s}</td>`;
+    html += `<td><span class="card-band" style="background:${band.color}20;color:${band.color}">${band.label}</span></td>`;
+    if (currentPeriod > 0) {
+      const prev = total(c, currentPeriod - 1);
+      const diff = s - prev;
+      const dClr = diff > 0 ? "#34A853" : diff < 0 ? "#EA4335" : "#484F58";
+      const dTxt = diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : "=";
+      html += `<td style="font-weight:700;color:${dClr}">${dTxt}</td>`;
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function render() {
+  document.getElementById("periodLabel").textContent = PERIODS[currentPeriod].label;
+  renderTicks();
+  renderPills();
+  renderTabs();
+  if (view === "radar") renderRadar();
+  else renderCompare();
+}
+
+initSlider();
 render();
 </script>
 </body>
